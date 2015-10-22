@@ -1,0 +1,42 @@
+- hosts: jenkins
+  sudo: True
+  user: vagrant
+  tasks:
+    - name: "Instala OpenJDK"
+      yum: name=java-1.7.0-openjdk-devel state=latest
+
+    - name: "Instala Git"
+      yum: name=git state=latest
+
+    - name: "Instala o wget e unzip"
+      shell: sudo yum -y install wget unzip
+
+    - name: "Download do Maven"
+      get_url: url=http://mirror.nbtelecom.com.br/apache/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.zip dest=/tmp/apache-maven-3.3.3-bin.zip
+
+    - name: "Descompacta o Maven em /opt"
+      unarchive: src=/tmp/apache-maven-3.3.3-bin.zip dest=/opt copy=no
+
+    - name: "Download do repositorio Jenkins"
+      shell: sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
+
+    - name: "Cria um link simbolico para o Maven"
+      shell: ln -s /opt/apache-maven-3.3.3 /opt/maven
+
+    - name: "Imposta a chave do repoistorio"
+      shell: sudo rpm --import http://pkg.jenkins-ci.org/redhat-stable/jenkins-ci.org.key
+
+    - name: "Instala Jenkins"
+      shell: sudo yum -y install jenkins
+
+    - name: "Habilita o jenkins"
+      shell: sudo systemctl enable jenkins.service
+
+    - name: "Inicia o jenkins"
+      shell: sudo systemctl start jenkins.service
+
+    - name: "Adiciona o IP do GitLab"
+      lineinfile: 'dest=/etc/hosts line="192.168.90.10 gitlab"'
+
+    - name: "Chave SSH para Deploy no Gitlab"
+      user: name=vagrant generate_ssh_key=yes

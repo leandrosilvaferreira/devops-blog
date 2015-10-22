@@ -1,0 +1,36 @@
+- hosts: gitlab
+  sudo: True
+  user: vagrant
+  tasks:
+    - name: "Atualiza pacotes e Instala OpenSSH Server"
+      yum: name=openssh-server state=latest
+
+    - name: "Instala o Curl"
+      yum: name=curl state=latest
+
+    - name: "Habilita o SSHD"
+      shell: sudo systemctl enable sshd.service
+
+    - name: "Inicia o SSHD"
+      shell: sudo systemctl start sshd.service
+
+    - name: "Instala Postfix"
+      yum: name=postfix state=latest
+
+    - name: "Habilita o Postfix"
+      shell: sudo systemctl enable postfix
+
+    - name: "Inicia o Postfix"
+      shell: sudo systemctl start postfix
+
+    - name: "Download do instalador GitLab"
+      shell: curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh | sudo bash
+
+    - name: "Instala GitLab"
+      shell: sudo yum -y install gitlab-ce
+
+    - name: "Configura e Inicia o GitLab"
+      shell: sudo gitlab-ctl reconfigure
+
+    - name: "Adiciona o IP do Jenkins"
+      lineinfile: 'dest=/etc/hosts line="192.168.90.20 jenkins"'
